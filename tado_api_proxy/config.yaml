@@ -6,6 +6,10 @@ url: "https://github.com/s1adem4n/tado-api-proxy"
 init: false
 startup: application
 watchdog: http://[HOST]:[PORT:8080]/
+ingress: true
+ingress_port: 8080
+panel_icon: mdi:thermostat
+panel_title: Tado API Proxy
 arch:
   - aarch64
   - amd64

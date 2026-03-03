@@ -12,7 +12,7 @@ RUN case "${BUILD_ARCH}" in \
       *) echo "Unsupported arch: ${BUILD_ARCH}" && exit 1 ;; \
     esac && \
     curl -fsSL \
-      "https://github.com/s1adem4n/tado-api-proxy/releases/latest/download/tado-api-proxy_linux_${ARCH}.tar.gz" \
+      "https://github.com/s1adem4n/tado-api-proxy/releases/download/v1.1.0/tado-api-proxy_linux_${ARCH}.tar.gz" \
       -o /tmp/tado.tar.gz && \
     tar -xzf /tmp/tado.tar.gz -C /tmp && \
     mv /tmp/tado-api-proxy /app && \

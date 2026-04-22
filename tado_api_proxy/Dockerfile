@@ -1,4 +1,4 @@
-FROM ghcr.io/s1adem4n/tado-api-proxy:1.1.0 AS upstream
+FROM ghcr.io/s1adem4n/tado-api-proxy:1.2.1 AS upstream
 
 ARG BUILD_FROM
 FROM ${BUILD_FROM}

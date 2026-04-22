@@ -1,6 +1,6 @@
 name: "Tado API Proxy"
 description: "Self-hosted proxy for Tado's API with automatic OAuth token rotation"
-version: "1.1.0"
+version: "1.2.1"
 slug: "tado_api_proxy"
 url: "https://github.com/s1adem4n/tado-api-proxy"
 init: false

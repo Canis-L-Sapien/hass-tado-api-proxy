@@ -1,0 +1,58 @@
+name: Sync add-on version
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tado_api_proxy/Dockerfile
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract upstream version
+        id: version
+        run: |
+          version=$(grep '^FROM ghcr.io/s1adem4n/tado-api-proxy:' tado_api_proxy/Dockerfile \
+            | sed 's|FROM ghcr.io/s1adem4n/tado-api-proxy:||' \
+            | sed 's| .*||')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version changed
+        id: check
+        run: |
+          current=$(grep '^version:' tado_api_proxy/config.yaml | sed 's/version: "//' | sed 's/"//')
+          if [ "$current" = "${{ steps.version.outputs.version }}" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update config.yaml
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          sed -i 's/^version: ".*"/version: "${{ steps.version.outputs.version }}"/' \
+            tado_api_proxy/config.yaml
+
+      - name: Commit and push
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tado_api_proxy/config.yaml
+          git commit -m "Bump add-on version to ${{ steps.version.outputs.version }}"
+          git push
+
+      - name: Create release
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "Updates tado-api-proxy to v${{ steps.version.outputs.version }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

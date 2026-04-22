@@ -1,0 +1,32 @@
+name: Create release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tado_api_proxy/config.yaml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          version=$(grep '^version:' tado_api_proxy/config.yaml | sed 's/version: "//' | sed 's/"//')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create release if not exists
+        run: |
+          if ! gh release view "v${{ steps.version.outputs.version }}" &>/dev/null; then
+            gh release create "v${{ steps.version.outputs.version }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --notes "Updates tado-api-proxy to v${{ steps.version.outputs.version }}"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

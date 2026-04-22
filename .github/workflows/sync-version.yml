@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   sync:
@@ -39,20 +40,21 @@ jobs:
           sed -i 's/^version: ".*"/version: "${{ steps.version.outputs.version }}"/' \
             tado_api_proxy/config.yaml
 
-      - name: Commit and push
+      - name: Commit, push branch, and open PR
         if: steps.check.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          branch="sync-version/${{ steps.version.outputs.version }}"
+          git checkout -b "$branch"
           git add tado_api_proxy/config.yaml
           git commit -m "Bump add-on version to ${{ steps.version.outputs.version }}"
-          git push
-
-      - name: Create release
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          gh release create "v${{ steps.version.outputs.version }}" \
-            --title "v${{ steps.version.outputs.version }}" \
-            --notes "Updates tado-api-proxy to v${{ steps.version.outputs.version }}"
+          git push origin "$branch"
+          pr_url=$(gh pr create \
+            --title "Bump add-on version to ${{ steps.version.outputs.version }}" \
+            --body "Syncs config.yaml version to match tado-api-proxy ${{ steps.version.outputs.version }}." \
+            --base main \
+            --head "$branch")
+          gh pr merge --auto --squash "$pr_url"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
